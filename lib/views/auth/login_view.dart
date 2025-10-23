@@ -1,7 +1,8 @@
+import 'package:dg_th_app/views/home/home_view.dart';
 import 'package:flutter/material.dart';
 import '../../services/database_helper.dart';
-import '../../models/user.dart';
 import 'register_view.dart';
+
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -16,29 +17,30 @@ class _LoginViewState extends State<LoginView> {
   final dbHelper = DatabaseHelper();
 
   void _login() async {
-    final username = _usernameController.text.trim();
-    final password = _passwordController.text.trim();
+  final username = _usernameController.text.trim();
+  final password = _passwordController.text.trim();
 
-    if (username.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha todos os campos')),
-      );
-      return;
-    }
-
-    final user = await dbHelper.getUser(username, password);
-
-    if (user != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Bem-vindo, ${user.username}!')),
-      );
-      
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Usuário ou senha incorretos')),
-      );
-    }
+  if (username.isEmpty || password.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Preencha todos os campos')),
+    );
+    return;
   }
+
+  final user = await dbHelper.getUser(username, password);
+
+  if (user != null) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => HomePage(user: user)),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Usuário ou senha incorretos')),
+    );
+  }
+}
+
 
   void _navigateToRegister() {
     Navigator.push(

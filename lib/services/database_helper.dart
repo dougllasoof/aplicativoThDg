@@ -27,7 +27,7 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    print('🧱 Criando banco de dados...');
+    print('Criando banco de dados...');
     await db.execute('''
       CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,13 +37,13 @@ class DatabaseHelper {
     ''');
   }
 
-  // Inserir novo usuário
+  
   Future<int> insertUser(User user) async {
     final db = await database;
     return await db.insert('users', user.toMap());
   }
 
-  // Buscar usuário pelo username e senha
+  
   Future<User?> getUser(String username, String password) async {
     final db = await database;
     final result = await db.query(
@@ -58,7 +58,7 @@ class DatabaseHelper {
     return null;
   }
 
-  // Verificar se nome de usuário já existe
+  
   Future<bool> usernameExists(String username) async {
     final db = await database;
     final result = await db.query(
