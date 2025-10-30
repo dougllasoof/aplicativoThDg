@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../models/user.dart';
-import '../auth/login_view.dart';
+import '../../models/skin.dart';
+import '../../services/database_helper.dart';
+import '../../services/theme_service.dart';
+import 'add_skin_view.dart';
+import 'skin_detail_view.dart';
+import 'profile_view.dart';
+import 'settings_view.dart';
 
 class HomePage extends StatefulWidget {
   final User user;
@@ -11,156 +17,105 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final ValueNotifier<ThemeMode> _themeMode = ValueNotifier(ThemeMode.dark);
+  List<Skin> skins = [];
 
-  void _logout(BuildContext context) {
-    Navigator.pushAndRemoveUntil(
+  @override
+  void initState() {
+    super.initState();
+    _loadSkins();
+  }
+
+  Future<void> _loadSkins() async {
+    final list = await DatabaseHelper.instance.getSkinsByUser(widget.user.id!);
+    setState(() => skins = list);
+  }
+
+  void _openAddSkin() async {
+    await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const LoginView()),
-      (route) => false,
+      MaterialPageRoute(builder: (_) => AddSkinView(user: widget.user)),
     );
+    await _loadSkins();
   }
 
-  void _showSettingsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        bool isDark = _themeMode.value == ThemeMode.dark;
-        return AlertDialog(
-          backgroundColor: Colors.black,
-          title: const Text('Configurações', style: TextStyle(color: Colors.white)),
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Tema Escuro', style: TextStyle(color: Colors.white)),
-              Switch(
-                value: isDark,
-                onChanged: (value) {
-                  setState(() {
-                    _themeMode.value = value ? ThemeMode.dark : ThemeMode.light;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _onMenuSelected(String value) {
-    switch (value) {
-      case 'perfil':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tela de Perfil em construção...')),
-        );
-        break;
-      case 'cadastrar':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cadastrar Skin em breve...')),
-        );
-        break;
-      case 'config':
-        _showSettingsDialog();
-        break;
-      case 'logout':
-        _logout(context);
-        break;
+  void _onMenuSelected(String v) {
+    if (v == 'account') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileView(user: widget.user)))
+          .then((_) => _loadSkins());
+    } else if (v == 'settings') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsView()));
+    } else if (v == 'logout') {
+      Navigator.popUntil(context, (route) => route.isFirst);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final fakeSkins = [
-      {'name': 'AK-47 | Redline', 'rarity': 'Classified'},
-      {'name': 'AWP | Dragon Lore', 'rarity': 'Covert'},
-      {'name': 'M4A1-S | Hyper Beast', 'rarity': 'Classified'},
-      {'name': 'Desert Eagle | Blaze', 'rarity': 'Covert'},
-      {'name': 'USP-S | Kill Confirmed', 'rarity': 'Covert'},
-    ];
-
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: _themeMode,
-      builder: (context, themeMode, _) {
-        final isDark = themeMode == ThemeMode.dark;
-
-        return MaterialApp(
-          themeMode: themeMode,
-          theme: ThemeData.light().copyWith(
-            appBarTheme: const AppBarTheme(backgroundColor: Colors.white, foregroundColor: Colors.black),
-            scaffoldBackgroundColor: Colors.white,
+    final isDark = ThemeService.instance.themeMode.value == ThemeMode.dark;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Bem-vindo, ${widget.user.username}'),
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _openAddSkin,
+            tooltip: 'Adicionar arma/skin',
           ),
-          darkTheme: ThemeData.dark().copyWith(
-            scaffoldBackgroundColor: Colors.black,
-            appBarTheme: const AppBarTheme(backgroundColor: Colors.black, foregroundColor: Colors.white),
-          ),
-          debugShowCheckedModeBanner: false,
-          home: Scaffold(
-            appBar: AppBar(
-              title: Text('Bem-vindo, ${widget.user.username}'),
-              actions: [
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: _onMenuSelected,
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'perfil', child: Text('Perfil')),
-                    const PopupMenuItem(value: 'cadastrar', child: Text('Cadastrar Skin')),
-                    const PopupMenuItem(value: 'config', child: Text('Configurações')),
-                    const PopupMenuItem(value: 'logout', child: Text('Logout')),
-                  ],
-                ),
-              ],
-            ),
-            body: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Minhas Skins',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: fakeSkins.length,
-                      itemBuilder: (context, index) {
-                        final skin = fakeSkins[index];
-                        return Card(
-                          color: isDark ? const Color(0xFF121212) : Colors.grey[200],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.whatshot,
-                              color: isDark ? Colors.white70 : Colors.black54,
-                            ),
-                            title: Text(
-                              skin['name']!,
-                              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                            ),
-                            subtitle: Text(
-                              skin['rarity']!,
-                              style: TextStyle(color: isDark ? Colors.grey : Colors.black54),
-                            ),
-                          ),
-                        );
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: _onMenuSelected,
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'account', child: Text('Conta')),
+              PopupMenuItem(value: 'settings', child: Text('Configurações')),
+              PopupMenuItem(value: 'logout', child: Text('Logout')),
+            ],
+          )
+        ],
+      ),
+      backgroundColor: isDark ? Colors.black : Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.all(12),
+        child: skins.isEmpty
+            ? Center(
+                child: Text('Nenhuma arma cadastrada.\nToque no + para adicionar.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+              )
+            : ListView.builder(
+                itemCount: skins.length,
+                itemBuilder: (context, i) {
+                  final s = skins[i];
+                  return Card(
+                    color: isDark ? const Color(0xFF121212) : Colors.grey[200],
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      title: Text(s.weaponName, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                      subtitle: Text(s.skinType, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+                      trailing: PopupMenuButton<String>(
+                        onSelected: (value) async {
+                          if (value == 'edit') {
+                            // open edit in add_skin_view in edit mode
+                            await Navigator.push(context, MaterialPageRoute(builder: (_) => AddSkinView(user: widget.user, editingSkin: s)));
+                            await _loadSkins();
+                          } else if (value == 'delete') {
+                            await DatabaseHelper.instance.deleteSkin(s.id!);
+                            await _loadSkins();
+                          }
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(value: 'edit', child: Text('Editar')),
+                          PopupMenuItem(value: 'delete', child: Text('Excluir')),
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => SkinDetailView(skinId: s.id!)));
                       },
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
-            ),
-          ),
-        );
-      },
+      ),
     );
   }
 }
