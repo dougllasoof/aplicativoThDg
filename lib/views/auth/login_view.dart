@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../services/database_helper.dart';
 import 'register_view.dart';
 
-
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
@@ -16,31 +15,32 @@ class _LoginViewState extends State<LoginView> {
   final _passwordController = TextEditingController();
   final dbHelper = DatabaseHelper();
 
+  bool _obscurePassword = true;
+
   void _login() async {
-  final username = _usernameController.text.trim();
-  final password = _passwordController.text.trim();
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
 
-  if (username.isEmpty || password.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Preencha todos os campos')),
-    );
-    return;
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha todos os campos')),
+      );
+      return;
+    }
+
+    final user = await dbHelper.getUser(username, password);
+
+    if (user != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomePage(user: user)),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Usuário ou senha incorretos')),
+      );
+    }
   }
-
-  final user = await dbHelper.getUser(username, password);
-
-  if (user != null) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => HomePage(user: user)),
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Usuário ou senha incorretos')),
-    );
-  }
-}
-
 
   void _navigateToRegister() {
     Navigator.push(
@@ -52,7 +52,7 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login'),centerTitle: true,),
+      appBar: AppBar(title: const Text('Login'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Center(
@@ -70,6 +70,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ),
                 const SizedBox(height: 30),
+
                 TextField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
@@ -78,15 +79,29 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ),
                 const SizedBox(height: 16),
+
                 TextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     labelText: 'Senha',
-                    prefixIcon: Icon(Icons.lock),
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -94,6 +109,7 @@ class _LoginViewState extends State<LoginView> {
                     child: const Text('Entrar'),
                   ),
                 ),
+
                 TextButton(
                   onPressed: _navigateToRegister,
                   child: const Text('Não tem conta? Cadastre-se'),

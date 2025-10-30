@@ -15,6 +15,9 @@ class _RegisterViewState extends State<RegisterView> {
   final _confirmPasswordController = TextEditingController();
   final dbHelper = DatabaseHelper();
 
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
   void _register() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
@@ -73,6 +76,7 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                 ),
                 const SizedBox(height: 30),
+
                 TextField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
@@ -81,24 +85,51 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                 ),
                 const SizedBox(height: 16),
+
                 TextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     labelText: 'Senha',
-                    prefixIcon: Icon(Icons.lock),
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
+
                 TextField(
                   controller: _confirmPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscureConfirmPassword,
+                  decoration: InputDecoration(
                     labelText: 'Confirmar Senha',
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
