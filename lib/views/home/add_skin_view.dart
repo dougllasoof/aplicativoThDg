@@ -5,7 +5,7 @@ import '../../services/database_helper.dart';
 
 class AddSkinView extends StatefulWidget {
   final User user;
-  final Skin? editingSkin; // if provided, we are editing
+  final Skin? editingSkin; // se for fornecida, estamos editando
 
   const AddSkinView({super.key, required this.user, this.editingSkin});
 
@@ -19,11 +19,11 @@ class _AddSkinViewState extends State<AddSkinView> {
   String selectedImage = 'assets/ak_redline.png';
 
   final List<String> imageOptions = [
-    'assets/ak_redline.png',
-    'assets/awp_dragon_lore.png',
-    'assets/m4a1s_hyper_beast.png',
-    'assets/usp_kill_confirmed.png',
-    'assets/deagle_blaze.png',
+    'assets/images/ak.png',
+    'assets/images/awp.png',
+    'assets/images/m4a1s.png',
+    'assets/images/usp.png',
+    'assets/images/deagle.png',
   ];
 
   @override
@@ -40,12 +40,15 @@ class _AddSkinViewState extends State<AddSkinView> {
   Future<void> _save() async {
     final weapon = _weaponCtrl.text.trim();
     final type = _typeCtrl.text.trim();
+
     if (weapon.isEmpty || type.isEmpty || selectedImage.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preencha todos os campos')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Preencha todos os campos')));
       return;
     }
 
     final db = DatabaseHelper.instance;
+
     if (widget.editingSkin != null) {
       final s = Skin(
         id: widget.editingSkin!.id,
@@ -78,12 +81,18 @@ class _AddSkinViewState extends State<AddSkinView> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.editingSkin != null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Editar Skin' : 'Cadastrar Skin'),
-        backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white,
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white,
+      backgroundColor: isDark ? Colors.black : Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
@@ -111,7 +120,13 @@ class _AddSkinViewState extends State<AddSkinView> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Align(alignment: Alignment.centerLeft, child: Text('Escolha uma imagem', style: TextStyle(color: Colors.white70))),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Escolha uma imagem',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
               const SizedBox(height: 8),
               SizedBox(
                 height: 120,
@@ -130,7 +145,12 @@ class _AddSkinViewState extends State<AddSkinView> {
                           border: selected ? Border.all(color: Colors.blue, width: 2) : null,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Image.asset(path, width: 100, height: 100, fit: BoxFit.cover),
+                        child: Image.asset(
+                          path,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     );
                   },
@@ -141,10 +161,13 @@ class _AddSkinViewState extends State<AddSkinView> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _save,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                  ),
                   child: Text(isEditing ? 'Salvar alterações' : 'Salvar'),
                 ),
-              )
+              ),
             ],
           ),
         ),

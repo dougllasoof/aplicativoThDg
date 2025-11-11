@@ -1,7 +1,6 @@
 import 'package:dg_th_app/views/home/home_view.dart';
 import 'package:flutter/material.dart';
 import '../../services/database_helper.dart';
-import '../home/home_view.dart';
 import 'register_view.dart';
 
 class LoginView extends StatefulWidget {
